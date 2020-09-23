@@ -81,6 +81,7 @@ void BLEClient::set_enabled(bool enabled) {
 
 void BLEClient::connect() {
   ESP_LOGI(TAG, "Attempting BLE connection to %s", this->address_str().c_str());
+  // auto ret = esp_ble_gattc_open(this->gattc_if_, this->remote_bda_, BLE_ADDR_TYPE_RANDOM, true);
   auto ret = esp_ble_gattc_open(this->gattc_if_, this->remote_bda_, BLE_ADDR_TYPE_PUBLIC, true);
   if (ret) {
     ESP_LOGW(TAG, "esp_ble_gattc_open error, address=%s status=%d", this->address_str().c_str(), ret);
@@ -156,9 +157,9 @@ void BLEClient::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t ga
     case ESP_GATTC_SEARCH_CMPL_EVT: {
       ESP_LOGV(TAG, "[%s] ESP_GATTC_SEARCH_CMPL_EVT", this->address_str().c_str());
       for (auto &svc : this->services_) {
-        ESP_LOGI(TAG, "Service UUID: %s", svc->uuid_.to_string().c_str());
-        ESP_LOGI(TAG, "  start_handle: 0x%x  end_handle: 0x%x", svc->start_handle_, svc->end_handle_);
+        ESP_LOGI(TAG, "{ Service: '%s', chars: [", svc->uuid_.to_string().c_str());
         svc->parse_characteristics();
+        ESP_LOGI(TAG, "]}");
       }
       this->set_states(espbt::ClientState::Connected);
       this->state_ = espbt::ClientState::Established;
@@ -324,9 +325,9 @@ void BLEService::parse_characteristics() {
     bChar->handle_ = result.char_handle;
     bChar->service_ = this;
     this->characteristics_.push_back(bChar);
-    ESP_LOGI(TAG, " characteristic %s, handle 0x%x, properties 0x%x", bChar->uuid_.to_string().c_str(), bChar->handle_,
-             bChar->properties_);
-    bChar->parse_descriptors();
+    // ESP_LOGI(TAG, " characteristic %s, handle 0x%x, properties 0x%x", bChar->uuid_.to_string().c_str(), bChar->handle_,
+    //          bChar->properties_);
+    // bChar->parse_descriptors();
     offset++;
   }
 }
@@ -373,6 +374,20 @@ BLEDescriptor *BLECharacteristic::get_descriptor(espbt::ESPBTUUID uuid) {
 }
 BLEDescriptor *BLECharacteristic::get_descriptor(uint16_t uuid) {
   return this->get_descriptor(espbt::ESPBTUUID::from_uint16(uuid));
+}
+
+void BLECharacteristic::write_value(uint8_t newVal) {
+  auto client = this->service_->client_;
+  auto status = esp_ble_gattc_write_char(client->gattc_if_,
+                    client->conn_id_,
+                    this->handle_,
+                    sizeof(newVal),
+                    &newVal,
+                    ESP_GATT_WRITE_TYPE_NO_RSP,
+                    ESP_GATT_AUTH_REQ_NONE);
+  if (status) {
+    ESP_LOGW(TAG, "[%s] Error sending write value to BLE gattc server, status=%d", this->uuid_.to_string().c_str(), status);
+  }
 }
 
 }  // namespace ble_client

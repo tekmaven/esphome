@@ -20,6 +20,7 @@ namespace esphome {
 namespace esp32_ble_tracker {
 
 static const char *TAG = "esp32_ble_tracker";
+static uint8_t SCANS_RUN = 0;
 
 ESP32BLETracker *global_esp32_ble_tracker = nullptr;
 
@@ -172,6 +173,13 @@ bool ESP32BLETracker::ble_setup() {
 }
 
 void ESP32BLETracker::start_scan(bool first) {
+  // Quick hack to stop scanning, this didn't make a difference, will remove.
+  if (SCANS_RUN > 10) {
+    return;
+  }
+
+  SCANS_RUN++;
+
   if (!xSemaphoreTake(this->scan_end_lock_, 0L)) {
     ESP_LOGW(TAG, "Cannot start scan!");
     return;
@@ -293,6 +301,10 @@ ESPBTUUID ESPBTUUID::from_uuid(esp_bt_uuid_t uuid) {
   for (size_t i = 0; i < ESP_UUID_LEN_128; i++)
     ret.uuid_.uuid.uuid128[i] = uuid.uuid.uuid128[i];
   return ret;
+}
+
+uint16_t ESPBTUUID::as_uint16(esp_bt_uuid_t uuid) {
+  return uuid.uuid.uuid16;
 }
 ESPBTUUID ESPBTUUID::as_128bit() const {
   if (this->uuid_.len == ESP_UUID_LEN_128) {

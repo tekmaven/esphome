@@ -26,6 +26,7 @@ class ESPBTUUID {
   static ESPBTUUID from_raw(const uint8_t *data);
 
   static ESPBTUUID from_uuid(esp_bt_uuid_t uuid);
+  static uint16_t  as_uint16(esp_bt_uuid_t uuid);
 
   ESPBTUUID as_128bit() const;
 

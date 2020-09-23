@@ -84,7 +84,11 @@ void BLESensor::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t ga
       }
       if (param->read.handle == this->sensor_handle_) {
         this->status_clear_warning();
-        this->publish_state((float) param->read.value[0]);
+        // this->publish_state((float) param->read.value[0]);
+        // hack this to handle uint8_t
+        // TODO: create ble_sensor_uint8 or create option on how this value is parsed.
+        float new_state = (float)((uint8_t)param->read.value[0] + ((uint8_t)param->read.value[1] * 256));
+        this->publish_state(new_state);
       }
       break;
     }

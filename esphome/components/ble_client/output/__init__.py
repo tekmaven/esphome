@@ -43,5 +43,7 @@ def to_code(config):
         uuid128 = esp32_ble_tracker.as_hex_array(config[CONF_CHARACTERISTIC_UUID])
         cg.add(var.set_char_uuid128(uuid128))
 
+
+    yield output.register_output(var, config)
     yield ble_client.register_ble_node(var, config)
     yield cg.register_component(var, config)

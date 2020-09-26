@@ -91,6 +91,9 @@ void BLEClient::connect() {
   }
 }
 
+const auto SERVICE_WE_WANT = (uint8_t*)(const uint8_t[16]){0x4C,0x45,0x4B,0x43,0x49,0x42,0x26,0x5A,0x52,0x4F,0x54,0x53,0x00,0x00,0x11,0x10};
+const auto SERVICE_UUID = espbt::ESPBTUUID::from_raw(SERVICE_WE_WANT);
+
 void BLEClient::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if,
                                     esp_ble_gattc_cb_param_t *param) {
   if (event == ESP_GATTC_REG_EVT && this->app_id_ != param->reg.app_id)
@@ -146,20 +149,27 @@ void BLEClient::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t ga
       break;
     }
     case ESP_GATTC_SEARCH_RES_EVT: {
-      BLEService *ble_service = new BLEService();
-      ble_service->uuid_ = espbt::ESPBTUUID::from_uuid(param->search_res.srvc_id.uuid);
-      ble_service->start_handle_ = param->search_res.start_handle;
-      ble_service->end_handle_ = param->search_res.end_handle;
-      ble_service->client_ = this;
-      this->services_.push_back(ble_service);
+      auto uuid = espbt::ESPBTUUID::from_uuid(param->search_res.srvc_id.uuid);
+      if(uuid == SERVICE_UUID) {
+        ESP_LOGW(TAG, "found it");
+        BLEService *ble_service = new BLEService();
+        ble_service->uuid_ = uuid;
+        ble_service->start_handle_ = param->search_res.start_handle;
+        ble_service->end_handle_ = param->search_res.end_handle;
+        ble_service->client_ = this;
+        this->services_.push_back(ble_service);
+      }
       break;
     }
     case ESP_GATTC_SEARCH_CMPL_EVT: {
       ESP_LOGV(TAG, "[%s] ESP_GATTC_SEARCH_CMPL_EVT", this->address_str().c_str());
       for (auto &svc : this->services_) {
-        ESP_LOGI(TAG, "{ Service: '%s', chars: [", svc->uuid_.to_string().c_str());
-        svc->parse_characteristics();
-        ESP_LOGI(TAG, "]}");
+        if(svc->uuid_ == SERVICE_UUID) {
+          ESP_LOGW(TAG, "found it!!");
+          ESP_LOGI(TAG, "{ Service: '%s', chars: [", svc->uuid_.to_string().c_str());
+          svc->parse_characteristics();
+          ESP_LOGI(TAG, "]}");
+        }
       }
       this->set_states(espbt::ClientState::Connected);
       this->state_ = espbt::ClientState::Established;

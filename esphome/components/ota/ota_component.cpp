@@ -71,6 +71,8 @@ void OTAComponent::handle_() {
 
   ESP_LOGD(TAG, "Starting OTA Update from %s...", this->client_.remoteIP().toString().c_str());
   this->status_set_warning();
+  this->write_rtc_(10);
+  ESP_LOGD(TAG, "Safe mode enabled on failure.  If OTA fails, I will reboot in safe mode.");
 
   if (!this->wait_receive_(buf, 5)) {
     ESP_LOGW(TAG, "Reading magic bytes failed!");
@@ -399,6 +401,13 @@ void OTAComponent::clean_rtc() { this->write_rtc_(0); }
 void OTAComponent::on_safe_shutdown() {
   if (this->has_safe_mode_)
     this->clean_rtc();
+}
+
+void OTAComponent::reboot_in_safe_mode() {
+  ESP_LOGE(TAG, "Request to reboot to safe mode.");
+  this->write_rtc_(10);
+  ESP_LOGE(TAG, "Rebooting.");
+  ESP.restart();
 }
 
 }  // namespace ota

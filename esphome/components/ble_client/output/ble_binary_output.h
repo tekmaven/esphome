@@ -25,7 +25,7 @@ class BLEBinaryOutput : public output::BinaryOutput, public BLEClientNode, publi
   void set_char_uuid32(uint32_t uuid) { this->char_uuid_ = espbt::ESPBTUUID::from_uint32(uuid); }
   void set_char_uuid128(uint8_t *uuid) { this->char_uuid_ = espbt::ESPBTUUID::from_raw(uuid); }
   void gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if,
-                           esp_ble_gattc_cb_param_t *param) {}
+                           esp_ble_gattc_cb_param_t *param);
  protected:
   void write_state(bool state);
   espbt::ESPBTUUID service_uuid_;

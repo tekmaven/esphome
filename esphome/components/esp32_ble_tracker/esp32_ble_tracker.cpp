@@ -174,11 +174,11 @@ bool ESP32BLETracker::ble_setup() {
 
 void ESP32BLETracker::start_scan(bool first) {
   // Quick hack to stop scanning, this didn't make a difference, will remove.
-  if (SCANS_RUN > 10) {
-    return;
-  }
+  // if (SCANS_RUN > 10) {
+  //   return;
+  // }
 
-  SCANS_RUN++;
+  // SCANS_RUN++;
 
   if (!xSemaphoreTake(this->scan_end_lock_, 0L)) {
     ESP_LOGW(TAG, "Cannot start scan!");
@@ -406,6 +406,11 @@ optional<ESPBLEiBeacon> ESPBLEiBeacon::from_manufacturer_data(const ServiceData 
 void ESPBTDevice::parse_scan_rst(const esp_ble_gap_cb_param_t::ble_scan_result_evt_param &param) {
   for (uint8_t i = 0; i < ESP_BD_ADDR_LEN; i++)
     this->address_[i] = param.bda[i];
+  if(this->address_[5] != (uint8_t)0x2F) {
+    // ESP_LOGW(TAG, "Not specific device.  Id ends with: %02X (and not %02X)", this->address_[5], 0x2F);
+    return;
+  }
+
   this->address_type_ = param.ble_addr_type;
   this->rssi_ = param.rssi;
   this->parse_adv_(param);
@@ -427,6 +432,7 @@ void ESPBTDevice::parse_scan_rst(const esp_ble_gap_cb_param_t::ble_scan_result_e
       address_type = "RPA_RANDOM";
       break;
   }
+
   ESP_LOGVV(TAG, "  Address: %02X:%02X:%02X:%02X:%02X:%02X (%s)", this->address_[0], this->address_[1],
             this->address_[2], this->address_[3], this->address_[4], this->address_[5], address_type);
 
@@ -621,6 +627,7 @@ void ESP32BLETracker::dump_config() {
   ESP_LOGCONFIG(TAG, "  Scan Window: %.1f ms", this->scan_window_ * 0.625f);
   ESP_LOGCONFIG(TAG, "  Scan Type: %s", this->scan_active_ ? "ACTIVE" : "PASSIVE");
 }
+
 void ESP32BLETracker::print_bt_device_info(const ESPBTDevice &device) {
   const uint64_t address = device.address_uint64();
   for (auto &disc : this->already_discovered_) {

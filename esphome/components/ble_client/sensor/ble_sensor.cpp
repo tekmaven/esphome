@@ -111,11 +111,11 @@ void BLESensor::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t ga
 
 void BLESensor::update() {
   if (this->node_state_ != espbt::ClientState::Established) {
-    ESP_LOGW(TAG, "[%s] Cannot poll, not connected", this->get_name().c_str());
+    // ESP_LOGW(TAG, "[%s] Cannot poll, not connected", this->get_name().c_str());
     return;
   }
   if (this->sensor_handle_ == 0) {
-    ESP_LOGW(TAG, "[%s] Cannot poll, no service or characteristic found", this->get_name().c_str());
+    // ESP_LOGW(TAG, "[%s] Cannot poll, no service or characteristic found", this->get_name().c_str());
     return;
   }
 

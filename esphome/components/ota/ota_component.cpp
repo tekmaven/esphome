@@ -256,6 +256,9 @@ void OTAComponent::handle_() {
     goto error;
   }
 
+  // Disable safe mode
+  this->write_rtc_(0);
+
   // Acknowledge Update end OK - 1 byte
   this->client_.write(OTA_RESPONSE_UPDATE_END_OK);
 

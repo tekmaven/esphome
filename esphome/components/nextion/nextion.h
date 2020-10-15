@@ -74,7 +74,7 @@ class Nextion : public PollingComponent, public uart::UARTDevice {
    * This will change the image of the component `pic` to the image with ID `4`.
    */
   void set_component_picture(const char *component, const char *picture) {
-    this->send_command_printf("%s.val=%s", component, picture);
+    this->send_command_printf("%s.pic=%s", component, picture);
   }
   /**
    * Set the background color of a component.

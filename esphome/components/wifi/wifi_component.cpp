@@ -137,6 +137,12 @@ WiFiComponent::WiFiComponent() { global_wifi_component = this; }
 
 bool WiFiComponent::has_ap() const { return !this->ap_.get_ssid().empty(); }
 bool WiFiComponent::has_sta() const { return !this->sta_.empty(); }
+std::string WiFiComponent::get_ssid() const {
+  if(this->has_ap()) {
+    return this->ap_.get_ssid();
+  }
+  return "Disconnected";
+}
 void WiFiComponent::set_fast_connect(bool fast_connect) { this->fast_connect_ = fast_connect; }
 IPAddress WiFiComponent::get_ip_address() {
   if (this->has_sta())

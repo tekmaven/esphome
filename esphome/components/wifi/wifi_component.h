@@ -199,6 +199,7 @@ class WiFiComponent : public Component {
 
   bool has_sta() const;
   bool has_ap() const;
+  std::string get_ssid() const;
 
   IPAddress get_ip_address();
   std::string get_use_address() const;
